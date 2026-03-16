@@ -1,3 +1,4 @@
+// Package server provides gRPC server and related configurations.
 package server
 
 import (
@@ -17,7 +18,7 @@ type serverOption struct {
 }
 
 type registryBuilder struct {
-	build registry.RegistryBuilder
+	build registry.Builder
 }
 
 // Option is a function that configures a serverOption.

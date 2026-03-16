@@ -17,11 +17,11 @@ import (
 var listenAddr string
 
 func init() {
-	if localIP := getLocalAddr(); localIP == "" {
+	localIP := getLocalAddr()
+	if localIP == "" {
 		log.Fatal("failed to get local IP address")
-	} else {
-		listenAddr = fmt.Sprintf("%s:0", localIP)
 	}
+	listenAddr = fmt.Sprintf("%s:0", localIP)
 }
 
 // Server represents a gRPC server instance.
@@ -42,7 +42,7 @@ func NewServer(opts ...Option) *Server {
 	}
 
 	serverRegistry, err := options.registryBuilder.build(
-		registry.RegistryConfig{
+		registry.Config{
 			ServiceName: options.serviceName,
 		},
 	)
@@ -63,14 +63,21 @@ func (s *Server) Start(ctx context.Context) error {
 		log.Fatal("grpc server is not initialized")
 	}
 
-	lis, err := net.Listen("tcp", listenAddr)
+	lc := net.ListenConfig{}
+	lis, err := lc.Listen(ctx, "tcp", listenAddr)
 	if err != nil {
 		log.Fatalf("failed to listen, error: %v", err)
 	}
 
 	addr := lis.Addr().String()
-	s.registry.Register(ctx, addr)
-	defer s.registry.Deregister(ctx)
+	if err = s.registry.Register(ctx, addr); err != nil {
+		log.Fatalf("failed to register service: %v", err)
+	}
+	defer func() {
+		if err = s.registry.Deregister(ctx); err != nil {
+			log.Printf("failed to deregister service: %v", err)
+		}
+	}()
 
 	// Graceful shutdown handling
 	stop := make(chan os.Signal, 1)

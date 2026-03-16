@@ -1,3 +1,4 @@
+// Package registry provides service registration and discovery interfaces.
 package registry
 
 import (
@@ -16,35 +17,35 @@ type Registry interface {
 }
 
 // NewEmptyRegistryBuilder creates an empty Registry builder.
-func NewEmptyRegistryBuilder(config RegistryConfig) (Registry, error) {
+func NewEmptyRegistryBuilder(_ Config) (Registry, error) {
 	return &emptyRegistry{}, nil
 }
 
 type emptyRegistry struct {
 }
 
-func (r *emptyRegistry) Register(ctx context.Context, addr string) error {
+func (r *emptyRegistry) Register(_ context.Context, _ string) error {
 	return nil
 }
 
-func (r *emptyRegistry) Deregister(ctx context.Context) error {
+func (r *emptyRegistry) Deregister(_ context.Context) error {
 	return nil
 }
 
-// RegistryConfig holds the configuration for a Registry.
-type RegistryConfig struct {
+// Config holds the configuration for a Registry.
+type Config struct {
 	ServiceName string
 }
 
 // NewEtcdRegistryBuilder creates an EtcdRegistry builder with the given service name and etcd endpoints.
-func NewEtcdRegistryBuilder(endpoints []string) RegistryBuilder {
+func NewEtcdRegistryBuilder(endpoints []string) Builder {
 	// serviceName := path.Join(prefix, config.ServiceName)
 	// return etcd.NewRegistry(serviceName, config.RegistryEndpoints)
-	return func(config RegistryConfig) (Registry, error) {
+	return func(config Config) (Registry, error) {
 		serviceName := path.Join(prefix, config.ServiceName)
 		return etcd.NewRegistry(serviceName, endpoints)
 	}
 }
 
-// RegistryBuilder is a function type that builds a Registry based on the given configuration.
-type RegistryBuilder func(config RegistryConfig) (Registry, error)
+// Builder is a function type that builds a Registry based on the given configuration.
+type Builder func(config Config) (Registry, error)
