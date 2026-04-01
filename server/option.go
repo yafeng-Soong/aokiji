@@ -3,22 +3,13 @@ package server
 
 import (
 	"github.com/yafeng-Soong/aokiji/registry"
-
 	"google.golang.org/grpc"
 )
 
-var emptyRegistryBuilder = registryBuilder{
-	build: registry.NewEmptyRegistryBuilder,
-}
-
 type serverOption struct {
-	serviceName     string
-	grpcServer      *grpc.Server
-	registryBuilder registryBuilder
-}
-
-type registryBuilder struct {
-	build registry.Builder
+	serviceName string
+	grpcServer  *grpc.Server
+	registry    registry.Registry
 }
 
 // Option is a function that configures a serverOption.
@@ -38,11 +29,9 @@ func WithGRPCServer(grpcServer *grpc.Server) Option {
 	}
 }
 
-// WithEtcdRegistry sets the etcd registry for the server.
-func WithEtcdRegistry(endpoints []string) Option {
+// WithRegistry sets the registry for the server.
+func WithRegistry(registry registry.Registry) Option {
 	return func(s *serverOption) {
-		s.registryBuilder = registryBuilder{
-			build: registry.NewEtcdRegistryBuilder(endpoints),
-		}
+		s.registry = registry
 	}
 }

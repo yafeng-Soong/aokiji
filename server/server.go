@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"path"
 	"syscall"
 
 	"github.com/yafeng-Soong/aokiji/registry"
@@ -34,26 +35,22 @@ type Server struct {
 // NewServer creates a new Server instance.
 func NewServer(opts ...Option) *Server {
 	options := &serverOption{
-		registryBuilder: emptyRegistryBuilder,
+		registry: registry.NewEmptyRegistry(),
 	}
 
 	for _, apply := range opts {
 		apply(options)
 	}
 
-	serverRegistry, err := options.registryBuilder.build(
-		registry.Config{
-			ServiceName: options.serviceName,
-		},
-	)
-	if err != nil {
-		log.Fatalf("failed to create registry: %v", err)
+	if options.serviceName == "" {
+		log.Fatal("service name is required")
 	}
 
+	serviceName := path.Join(registry.Prefix, options.serviceName)
 	return &Server{
-		serviceName: options.serviceName,
+		serviceName: serviceName,
 		grpcServer:  options.grpcServer,
-		registry:    serverRegistry,
+		registry:    options.registry,
 	}
 }
 
@@ -70,11 +67,11 @@ func (s *Server) Start(ctx context.Context) error {
 	}
 
 	addr := lis.Addr().String()
-	if err = s.registry.Register(ctx, addr); err != nil {
+	if err = s.registry.Register(ctx, s.serviceName, addr); err != nil {
 		log.Fatalf("failed to register service: %v", err)
 	}
 	defer func() {
-		if err = s.registry.Deregister(ctx); err != nil {
+		if err = s.registry.Deregister(ctx, s.serviceName, addr); err != nil {
 			log.Printf("failed to deregister service: %v", err)
 		}
 	}()
