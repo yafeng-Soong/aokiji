@@ -14,6 +14,7 @@ type Registry interface {
 	Deregister(context.Context, string, string) error
 }
 
+// NewEmptyRegistry creates a new Registry instance that does nothing.
 func NewEmptyRegistry() Registry {
 	return &emptyRegistry{}
 }

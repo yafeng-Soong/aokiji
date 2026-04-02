@@ -39,8 +39,8 @@ func WithDialTimeout(timeout time.Duration) Option {
 	}
 }
 
-// NewEtcdRegistry creates a new Registry instance with the given etcd endpoints and options.
-func NewEtcdRegistry(opts ...Option) (*Registry, error) {
+// NewRegistry creates a new Registry instance with the given etcd endpoints and options.
+func NewRegistry(opts ...Option) (*Registry, error) {
 	op := &options{
 		dialTimeout: defaultDialTimeout,
 		endpoints:   defaultEndpoints,
